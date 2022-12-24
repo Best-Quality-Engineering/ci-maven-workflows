@@ -1,0 +1,147 @@
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: Runner specification
+        type: string
+        required: false
+        default: ubuntu-latest
+      java-version:
+        description: Java version
+        type: string
+        required: false
+        default: "11"
+      java-distribution:
+        description: Java distribution
+        type: string
+        required: false
+        default: zulu
+      java-architecture:
+        description: Java architecture
+        type: string
+        required: false
+        default: x64
+      deployment-server-id:
+        description: Server id of the artifact deployment repository
+        type: string
+        required: false
+      profiles:
+        description: Comma separated list of profiles to activate
+        type: string
+        required: false
+        default: ""
+      version:
+        description: The version to release
+        type: string
+        required: true
+      revision-incrementor:
+        description: The revision incrementing strategy
+        type: string
+        required: false
+        default: auto
+      sha1:
+        description: The maven ci-friendly sha1 property to use
+        type: string
+        required: false
+        default: ""
+      changelist:
+        description: The maven ci-friendly changelist property to use
+        type: string
+        required: false
+        default: ""
+      git-user-name:
+        description: The git user name
+        type: string
+        required: false
+        default: Automaton
+      git-user-email:
+        description: The git user email
+        type: string
+        required: false
+        default: bot@bestquality.engineering
+      release-branch:
+        description: The name of the release branch to create
+        type: string
+        required: false
+        default: release/{0}
+      base-branch:
+        description: The branch into which the release branch will be merged
+        type: string
+        required: false
+        default: main
+    secrets:
+      code-signing-private-key:
+        description: Code signing GPG private key
+        required: false
+      code-signing-private-key-passphrase:
+        description: Code signing GPG private key passphrase
+        required: false
+      code-signing-private-key-fingerprint:
+        description: Code signing GPG private key fingerprint
+        required: false
+      deployment-server-username:
+        description: Deployment server username
+        required: false
+      deployment-server-password:
+        description: Deployment server password
+        required: false
+env:
+  DEPLOYMENT_SERVER_USERNAME: ${{secrets.deployment-server-username}}
+  DEPLOYMENT_SERVER_PASSWORD: ${{secrets.deployment-server-password}}
+  CODE_SIGNING_KEY_PASSPHRASE: ${{secrets.code-signing-private-key-passphrase}}
+  CODE_SIGNING_KEY_FINGERPRINT: ${{secrets.code-signing-private-key-fingerprint}}
+  CI_MAVEN_RELEASE_BRANCH: ${{format(inputs.release-branch, inputs.version)}}
+jobs:
+  deploy-release:
+    runs-on: [ "${{inputs.runs-on}}" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Runtime Environment
+        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@main
+        with:
+          java-version: ${{inputs.java-version}}
+          java-distribution: ${{inputs.java-distribution}}
+          java-architecture: ${{inputs.java-architecture}}
+          code-signing-private-key: ${{secrets.code-signing-private-key}}
+          deployment-server-id: ${{inputs.deployment-server-id}}
+      - name: Export Revision
+        id: export-revision
+        uses: Best-Quality-Engineering/ci-maven-actions/export-revision@main
+        with:
+          version: ${{inputs.version}}
+      - name: Deploy Release Artifacts
+        uses: Best-Quality-Engineering/ci-maven-actions/deploy-release@main
+        with:
+          profiles: ${{inputs.profiles}}
+          revision: ${{steps.export-revision.outputs.revision}}
+          sha1: ${{inputs.sha1}}
+          changelist: ${{inputs.changelist}}
+      - name: Configure Git User
+        uses: Best-Quality-Engineering/ci-maven-actions/git-user@main
+        with:
+          name: ${{inputs.git-user-name}}
+          email: ${{inputs.git-user-email}}
+      - name: Create Release Branch
+        uses: Best-Quality-Engineering/ci-maven-actions/create-branch@main
+        with:
+          name: ${{env.CI_MAVEN_RELEASE_BRANCH}}
+      - name: Increment Project Revision
+        uses: Best-Quality-Engineering/ci-maven-actions/increment-pom@main
+        with:
+          profiles: ${{inputs.profiles}}
+          incrementor: ${{inputs.revision-incrementor}}
+          revision: ${{steps.export-revision.outputs.revision}}
+          sha1: ${{inputs.sha1}}
+      - name: Update Version References in Documentation
+        uses: Best-Quality-Engineering/ci-maven-actions/replace-content@main
+        with:
+          profiles: ${{inputs.profiles}}
+          revision: ${{steps.export-revision.outputs.revision}}
+          sha1: ${{inputs.sha1}}
+          changelist: ${{inputs.changelist}}
+      - name: Merge Release Branch
+        uses: Best-Quality-Engineering/ci-maven-actions/merge-release-branch@main
+        with:
+          version: ${{inputs.version}}
+          release-branch: ${{env.CI_MAVEN_RELEASE_BRANCH}}
+          base-branch: ${{inputs.base-branch}}

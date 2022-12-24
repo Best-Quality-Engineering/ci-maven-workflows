@@ -1,0 +1,82 @@
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: Runner specification
+        type: string
+        required: false
+        default: ubuntu-latest
+      java-version:
+        description: Java version
+        type: string
+        required: false
+        default: "11"
+      java-distribution:
+        description: Java distribution
+        type: string
+        required: false
+        default: zulu
+      java-architecture:
+        description: Java architecture
+        type: string
+        required: false
+        default: x64
+      deployment-server-id:
+        description: Server id of the artifact deployment repository
+        type: string
+        required: false
+      profiles:
+        description: Comma separated list of profiles to activate
+        type: string
+        required: false
+        default: ""
+      sha1:
+        description: The maven ci-friendly sha1 property to use
+        type: string
+        required: false
+        default: ""
+      changelist:
+        description: The maven ci-friendly changelist property to use
+        type: string
+        required: false
+        default: -SNAPSHOT
+    secrets:
+      code-signing-private-key:
+        description: Code signing GPG private key
+        required: false
+      code-signing-private-key-passphrase:
+        description: Code signing GPG private key passphrase
+        required: false
+      code-signing-private-key-fingerprint:
+        description: Code signing GPG private key fingerprint
+        required: false
+      deployment-server-username:
+        description: Deployment server username
+        required: false
+      deployment-server-password:
+        description: Deployment server password
+        required: false
+env:
+  DEPLOYMENT_SERVER_USERNAME: ${{secrets.deployment-server-username}}
+  DEPLOYMENT_SERVER_PASSWORD: ${{secrets.deployment-server-password}}
+  CODE_SIGNING_KEY_PASSPHRASE: ${{secrets.code-signing-private-key-passphrase}}
+  CODE_SIGNING_KEY_FINGERPRINT: ${{secrets.code-signing-private-key-fingerprint}}
+jobs:
+  deploy-snapshot:
+    runs-on: [ "${{inputs.runs-on}}" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Runtime Environment
+        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@main
+        with:
+          java-version: ${{inputs.java-version}}
+          java-distribution: ${{inputs.java-distribution}}
+          java-architecture: ${{inputs.java-architecture}}
+          code-signing-private-key: ${{secrets.code-signing-private-key}}
+          deployment-server-id: ${{inputs.deployment-server-id}}
+      - name: Deploy Snapshot Artifacts
+        uses: Best-Quality-Engineering/ci-maven-actions/deploy-snapshot@main
+        with:
+          profiles: ${{inputs.profiles}}
+          sha1: ${{inputs.sha1}}
+          changelist: ${{inputs.changelist}}
