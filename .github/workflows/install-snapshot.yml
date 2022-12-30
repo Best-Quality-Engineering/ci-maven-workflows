@@ -21,10 +21,30 @@ on:
         type: string
         required: false
         default: x64
+      code-signing-private-key-fingerprint-env-variable:
+        description: Name of the environment variable containing code signing GPG private key fingerprint
+        type: string
+        required: false
+        default: CODE_SIGNING_KEY_FINGERPRINT
+      code-signing-private-key-passphrase-env-variable:
+        description: Name of the environment variable containing code signing GPG private key passphrase
+        type: string
+        required: false
+        default: CODE_SIGNING_KEY_PASSPHRASE
       deployment-server-id:
         description: Server id of the artifact deployment repository
         type: string
         required: false
+      deployment-server-username-env-variable:
+        description: Name of the environment variable containing the deployment repository username
+        type: string
+        required: false
+        default: DEPLOYMENT_SERVER_USERNAME
+      deployment-server-password-env-variable:
+        description: Name of the environment variable containing the deployment repository password
+        type: string
+        required: false
+        default: DEPLOYMENT_SERVER_PASSWORD
       profiles:
         description: Comma separated list of profiles to activate
         type: string
@@ -57,10 +77,10 @@ on:
         description: Deployment server password
         required: false
 env:
-  DEPLOYMENT_SERVER_USERNAME: ${{secrets.deployment-server-username}}
-  DEPLOYMENT_SERVER_PASSWORD: ${{secrets.deployment-server-password}}
-  CODE_SIGNING_KEY_PASSPHRASE: ${{secrets.code-signing-private-key-passphrase}}
-  CODE_SIGNING_KEY_FINGERPRINT: ${{secrets.code-signing-private-key-fingerprint}}
+  ${{inputs.code-signing-private-key-fingerprint-env-variable}}: ${{secrets.code-signing-private-key-fingerprint}}
+  ${{inputs.code-signing-private-key-passphrase-env-variable}}: ${{secrets.code-signing-private-key-passphrase}}
+  ${{inputs.deployment-server-username-env-variable}}: ${{secrets.deployment-server-username}}
+  ${{inputs.deployment-server-password-env-variable}}: ${{secrets.deployment-server-password}}
 jobs:
   install-snapshot:
     runs-on: [ "${{inputs.runs-on}}" ]
@@ -73,7 +93,10 @@ jobs:
           java-distribution: ${{inputs.java-distribution}}
           java-architecture: ${{inputs.java-architecture}}
           code-signing-private-key: ${{secrets.code-signing-private-key}}
+          code-signing-private-key-passphrase-env-variable: ${{inputs.code-signing-private-key-passphrase-env-variable}}
           deployment-server-id: ${{inputs.deployment-server-id}}
+          deployment-server-username-env-variable: ${{inputs.deployment-server-username-env-variable}}
+          deployment-server-password-env-variable: ${{inputs.deployment-server-password-env-variable}}
       - name: Execute Maven install
         uses: Best-Quality-Engineering/ci-maven-actions/install@main
         with:
