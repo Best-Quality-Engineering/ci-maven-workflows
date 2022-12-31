@@ -117,7 +117,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Runtime Environment
-        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@main
+        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@v1
         with:
           java-version: ${{inputs.java-version}}
           java-distribution: ${{inputs.java-distribution}}
@@ -129,41 +129,41 @@ jobs:
           deployment-server-password-env-variable: ${{inputs.deployment-server-password-env-variable}}
       - name: Export Revision
         id: export-revision
-        uses: Best-Quality-Engineering/ci-maven-actions/export-revision@main
+        uses: Best-Quality-Engineering/ci-maven-actions/export-revision@v1
         with:
           version: ${{inputs.version}}
       - name: Deploy Release Artifacts
-        uses: Best-Quality-Engineering/ci-maven-actions/deploy-release@main
+        uses: Best-Quality-Engineering/ci-maven-actions/deploy-release@v1
         with:
           profiles: ${{inputs.profiles}}
           revision: ${{steps.export-revision.outputs.revision}}
           sha1: ${{inputs.sha1}}
           changelist: ${{inputs.changelist}}
       - name: Configure Git User
-        uses: Best-Quality-Engineering/ci-maven-actions/git-user@main
+        uses: Best-Quality-Engineering/ci-maven-actions/git-user@v1
         with:
           name: ${{inputs.git-user-name}}
           email: ${{inputs.git-user-email}}
       - name: Create Release Branch
-        uses: Best-Quality-Engineering/ci-maven-actions/create-branch@main
+        uses: Best-Quality-Engineering/ci-maven-actions/create-branch@v1
         with:
           name: ${{env.CI_MAVEN_RELEASE_BRANCH}}
       - name: Increment Project Revision
-        uses: Best-Quality-Engineering/ci-maven-actions/increment-pom@main
+        uses: Best-Quality-Engineering/ci-maven-actions/increment-pom@v1
         with:
           profiles: ${{inputs.profiles}}
           incrementor: ${{inputs.revision-incrementor}}
           revision: ${{steps.export-revision.outputs.revision}}
           sha1: ${{inputs.sha1}}
       - name: Update Version References in Documentation
-        uses: Best-Quality-Engineering/ci-maven-actions/replace-content@main
+        uses: Best-Quality-Engineering/ci-maven-actions/replace-content@v1
         with:
           profiles: ${{inputs.profiles}}
           revision: ${{steps.export-revision.outputs.revision}}
           sha1: ${{inputs.sha1}}
           changelist: ${{inputs.changelist}}
       - name: Merge Release Branch
-        uses: Best-Quality-Engineering/ci-maven-actions/merge-release-branch@main
+        uses: Best-Quality-Engineering/ci-maven-actions/merge-release-branch@v1
         with:
           version: ${{inputs.version}}
           release-branch: ${{env.CI_MAVEN_RELEASE_BRANCH}}

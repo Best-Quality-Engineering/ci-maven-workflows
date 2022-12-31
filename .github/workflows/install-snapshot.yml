@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Runtime Environment
-        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@main
+        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@v1
         with:
           java-version: ${{inputs.java-version}}
           java-distribution: ${{inputs.java-distribution}}
@@ -98,7 +98,7 @@ jobs:
           deployment-server-username-env-variable: ${{inputs.deployment-server-username-env-variable}}
           deployment-server-password-env-variable: ${{inputs.deployment-server-password-env-variable}}
       - name: Execute Maven install
-        uses: Best-Quality-Engineering/ci-maven-actions/install@main
+        uses: Best-Quality-Engineering/ci-maven-actions/install@v1
         with:
           profiles: ${{inputs.profiles}}
           sha1: ${{inputs.sha1}}
