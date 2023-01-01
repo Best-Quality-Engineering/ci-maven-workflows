@@ -45,6 +45,11 @@ on:
         type: string
         required: false
         default: DEPLOYMENT_SERVER_PASSWORD
+      upload-coverage:
+        description: Upload code coverage reports to Codecov.IO
+        type: boolean
+        required: false
+        default: false
       profiles:
         description: Comma separated list of profiles to activate
         type: string
@@ -139,6 +144,9 @@ jobs:
           revision: ${{steps.export-revision.outputs.revision}}
           sha1: ${{inputs.sha1}}
           changelist: ${{inputs.changelist}}
+      - name: Upload Code Coverage
+        if: ${{inputs.upload-coverage}}
+        uses: codecov/codecov-action@v3
       - name: Configure Git User
         uses: Best-Quality-Engineering/ci-maven-actions/git-user@v1
         with:
