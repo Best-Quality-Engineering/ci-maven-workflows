@@ -54,17 +54,16 @@ on:
         description: Comma separated list of profiles to activate
         type: string
         required: false
-        default: ""
       sha1:
         description: The maven ci-friendly sha1 property to use
         type: string
         required: false
-        default: ""
+        default: "undefined"
       changelist:
         description: The maven ci-friendly changelist property to use
         type: string
         required: false
-        default: -SNAPSHOT
+        default: "undefined"
     secrets:
       code-signing-private-key:
         description: Code signing GPG private key
@@ -92,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Runtime Environment
-        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@v1
+        uses: Best-Quality-Engineering/ci-maven-actions/setup-runtime@main
         with:
           java-version: ${{inputs.java-version}}
           java-distribution: ${{inputs.java-distribution}}
@@ -103,7 +102,7 @@ jobs:
           deployment-server-username-env-variable: ${{inputs.deployment-server-username-env-variable}}
           deployment-server-password-env-variable: ${{inputs.deployment-server-password-env-variable}}
       - name: Deploy Snapshot Artifacts
-        uses: Best-Quality-Engineering/ci-maven-actions/deploy-snapshot@v1
+        uses: Best-Quality-Engineering/ci-maven-actions/deploy-snapshot@main
         with:
           profiles: ${{inputs.profiles}}
           sha1: ${{inputs.sha1}}
